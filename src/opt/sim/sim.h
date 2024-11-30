@@ -184,6 +184,8 @@ extern void            Sim_ManStop( Sim_Man_t * p );
 extern void            Sim_ManPrintStats( Sim_Man_t * p );
 extern Sim_Pat_t *     Sim_ManPatAlloc( Sim_Man_t * p );
 extern void            Sim_ManPatFree( Sim_Man_t * p, Sim_Pat_t * pPat );
+/*=== simSwitch.c ==========================================================*/
+extern Vec_Int_t * Sim_NtkLoadSwitching( Abc_Ntk_t * pNtk, char * fileName );
 /*=== simSeq.c ==========================================================*/
 extern Vec_Ptr_t *     Sim_SimulateSeqRandom( Abc_Ntk_t * pNtk, int nFrames, int nWords );
 extern Vec_Ptr_t *     Sim_SimulateSeqModel( Abc_Ntk_t * pNtk, int nFrames, int * pModel );

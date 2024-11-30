@@ -19105,6 +19105,7 @@ int Abc_CommandMap( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
     Abc_Ntk_t * pNtk, * pNtkRes;
     char Buffer[100];
+    char * fileSwitching;
     double DelayTarget;
     double AreaMulti;
     double DelayMulti;
@@ -19120,8 +19121,11 @@ int Abc_CommandMap( Abc_Frame_t * pAbc, int argc, char ** argv )
     int fUseProfile;
     int fUseBuffs;
     int fVerbose;
+    int fSwitchingLoad;
     int c;
     extern Abc_Ntk_t * Abc_NtkMap( Abc_Ntk_t * pNtk, double DelayTarget, double AreaMulti, double DelayMulti, float LogFan, float Slew, float Gain, int nGatesMin, int fRecovery, int fSwitching, int fSkipFanout, int fUseProfile, int fUseBuffs, int fVerbose );
+    extern Abc_Ntk_t * Abc_NtkMapLoadSwitch( Abc_Ntk_t * pNtk, double DelayTarget, double AreaMulti, double DelayMulti, float LogFan, float Slew, float Gain, int nGatesMin, int fRecovery, int fSwitching, int fSkipFanout, int fUseProfile, int fUseBuffs, int fVerbose, int fSwitchingLoad, char * SwitchFileName);
+
     extern int Abc_NtkFraigSweep( Abc_Ntk_t * pNtk, int fUseInv, int fExdc, int fVerbose, int fVeryVerbose );
 
     pNtk = Abc_FrameReadNtk(pAbc);
@@ -19137,11 +19141,24 @@ int Abc_CommandMap( Abc_Frame_t * pAbc, int argc, char ** argv )
     fUseProfile = 0;
     fUseBuffs   = 0;
     fVerbose    = 0;
+    fSwitchingLoad = 0;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "DABFSGMarspfuovh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "DABFSGMLarspfuovh" ) ) != EOF )
     {
         switch ( c )
         {
+        case 'L':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( 0, "Warning: Command line switch \"-L\" should be followed by a filename. A template of switching will be generated\n" );
+                fSwitchingLoad ^= 1;
+                fileSwitching = NULL;
+                break;
+            }
+            fileSwitching = argv[globalUtilOptind];
+            globalUtilOptind++;
+            fSwitchingLoad ^= 1;
+            break;
         case 'D':
             if ( globalUtilOptind >= argc )
             {
@@ -19255,6 +19272,46 @@ int Abc_CommandMap( Abc_Frame_t * pAbc, int argc, char ** argv )
     if ( fAreaOnly )
         DelayTarget = ABC_INFINITY;
 
+    if ( fSwitchingLoad )
+    {
+        if ( Abc_NtkIsStrash(pNtk) )
+        {
+            //pNtk = Abc_NtkStrash( pNtk, 0, 0, 0 );
+            if ( pNtk == NULL )
+            {
+                Abc_Print( -1, "Strashing before mapping has failed.\n" );
+                return 1;
+            }
+            if (fileSwitching == NULL)
+            {
+                Sim_NtkLoadSwitching(pNtk, fileSwitching);
+                Abc_Print( 0, "Loading switching activities into network failed. Generated a template switching file at *.switch.\n" );
+                return 1;
+            }
+            // test loaded switching for mapping
+            Abc_Print( 1, "Perform mapping with switching file loaded from %s.\n", fileSwitching);
+            fSwitching = 1;
+            pNtkRes = Abc_NtkMapLoadSwitch( pNtk, DelayTarget, AreaMulti, DelayMulti, LogFan, Slew, Gain, 
+                    nGatesMin, fRecovery, fSwitching, fSkipFanout, fUseProfile, fUseBuffs, fVerbose, fSwitchingLoad, fileSwitching );
+            if ( pNtkRes == NULL )
+            {
+                Abc_Print( -1, "Mapping has failed.\n" );
+                return 1;
+            }
+            Abc_Print( 1, "Mapping has completed with loaded switching file %s.\n",  fileSwitching);
+            // replace the current network
+            Abc_FrameReplaceCurrentNetwork( pAbc, pNtkRes );
+            return 0;
+        }
+        else
+        {
+            assert(0);
+            Sim_NtkLoadSwitching(pNtk, fileSwitching);
+            if (fileSwitching == NULL)
+                Abc_Print( 0, "Loading switching activities into network failed. Generated a template switching file at *.switch.\n" );
+            return 1;
+        }
+    }
     if ( !Abc_NtkIsStrash(pNtk) )
     {
         pNtk = Abc_NtkStrash( pNtk, 0, 0, 0 );
@@ -19320,6 +19377,7 @@ usage:
     Abc_Print( -2, "\t-S float : the slew parameter used to generate the library [default = %.2f]\n", Slew );
     Abc_Print( -2, "\t-G float : the gain parameter used to generate the library [default = %.2f]\n", Gain );
     Abc_Print( -2, "\t-M num   : skip gate classes whose size is less than this [default = %d]\n", nGatesMin );
+    Abc_Print( -2, "\t-L str   : load switching activity file; if not, a switching activity file template will be generated [default = %d]\n", fSwitchingLoad );
     Abc_Print( -2, "\t-a       : toggles area-only mapping [default = %s]\n", fAreaOnly? "yes": "no" );
     Abc_Print( -2, "\t-r       : toggles area recovery [default = %s]\n", fRecovery? "yes": "no" );
     Abc_Print( -2, "\t-s       : toggles sweep after mapping [default = %s]\n", fSweep? "yes": "no" );

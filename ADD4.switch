@@ -1,0 +1,38 @@
+# Switching Activities Template File
+# Format: ID [Switching Value Placeholder]
+# CIs: 8
+# Nodes: 38
+
+CI 0: ID=0 .5
+CI 1: ID=1 .5
+CI 2: ID=2 .5
+CI 3: ID=3 .5
+CI 4: ID=4 .5
+CI 5: ID=5 .5
+CI 6: ID=6 .5
+CI 7: ID=7 .5
+Node 0: ID=13 .5
+Node 1: ID=14 .5
+Node 2: ID=15 .5
+Node 3: ID=16 .1
+Node 4: ID=17 .5
+Node 5: ID=18 .5
+Node 6: ID=19 .1
+Node 7: ID=20 .5
+Node 8: ID=21 .5
+Node 9: ID=22 .1
+Node 10: ID=23 .5
+Node 11: ID=24 .5
+Node 12: ID=25 .1
+Node 13: ID=26 .5
+Node 14: ID=27 .5
+Node 15: ID=28 .5
+Node 16: ID=29 .5
+Node 17: ID=30 .5
+Node 18: ID=31 .1
+Node 19: ID=32 .1
+Node 20: ID=33 .1
+Node 21: ID=34 .9
+Node 22: ID=35 .9
+Node 23: ID=36 .9
+Node 24: ID=37 .9
